@@ -57,7 +57,8 @@
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self.tipPercentageTextField resignFirstResponder];
+    [self.view endEditing:YES];
+
 }
 
 - (void)roundValue{
@@ -89,6 +90,11 @@
     [self changeTipLabelValue];
     
 }
+//
+//- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
+//    return ![string containsString:@" "];
+//
+//}
 
 
 @end
