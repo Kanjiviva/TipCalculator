@@ -11,8 +11,12 @@
 @interface ViewController ()
 @property (weak, nonatomic) IBOutlet UITextField *billAmountTextField;
 @property (weak, nonatomic) IBOutlet UILabel *tipAmountLabel;
-- (IBAction)calculate:(id)sender;
+
 @property (weak, nonatomic) IBOutlet UITextField *tipPercentageTextField;
+@property (weak, nonatomic) IBOutlet UISlider *adjustTipPercentage;
+- (IBAction)adjustTipPercentage:(UISlider *)sender;
+
+@property (nonatomic) float tipTotal;
 
 @end
 
@@ -20,37 +24,71 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-}
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
-
-- (IBAction)calculate:(id)sender {
-
+ 
+    self.adjustTipPercentage.minimumValue = 0;
+    self.adjustTipPercentage.maximumValue = 100;
+    self.adjustTipPercentage.continuous = YES;
+    
+    [self delegateMethod];
+    
     [self calculateTip];
-    
-    [self.tipPercentageTextField resignFirstResponder];
-    
 }
 
-- (void)calculateTip {
+- (void)delegateMethod {
+    [self.adjustTipPercentage addTarget:self action:@selector(roundValue) forControlEvents:UIControlEventValueChanged];
     
-//    self.tipAmountLabel.text = [NSString stringWithFormat:@"%.2f", ([self.billAmountTextField.text intValue] * 0.15)];
+    [self.tipPercentageTextField addTarget:self
+                                    action:@selector(tipTextFieldDidChange)
+                          forControlEvents:UIControlEventEditingChanged];
     
-    float tipTotal;
+    [self.billAmountTextField addTarget:self
+                                 action:@selector(totalAmountTextFieldDidChange)
+                       forControlEvents:UIControlEventEditingChanged];
+}
+
+#pragma mark - Helper methods
+
+- (float)calculateTip {
     
-    tipTotal = [self.billAmountTextField.text intValue] * [self.tipPercentageTextField.text intValue] / 100;
+    self.tipTotal = [self.billAmountTextField.text floatValue] * [self.tipPercentageTextField.text floatValue] / 100;
     
-    self.tipAmountLabel.text = [NSString stringWithFormat:@"%.2f", tipTotal];
+    return self.tipTotal;
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     [self.tipPercentageTextField resignFirstResponder];
 }
+
+- (void)roundValue{
+    self.adjustTipPercentage.value = round(self.adjustTipPercentage.value);
+}
+
+- (void)tipTextFieldDidChange {
+    if ([self.tipPercentageTextField.text floatValue] >= 100) {
+        self.tipPercentageTextField.text = @"100";
+    }
+    self.adjustTipPercentage.value = [self.tipPercentageTextField.text intValue];
+    [self changeTipLabelValue];
+}
+
+- (void)changeTipLabelValue {
+    self.tipAmountLabel.text = [NSString stringWithFormat:@"%.02f", [self calculateTip]];
+
+}
+
+- (void)totalAmountTextFieldDidChange {
+    [self changeTipLabelValue];
+}
+
+#pragma mark - IBAction
+
+- (IBAction)adjustTipPercentage:(UISlider *)sender {
+
+    self.tipPercentageTextField.text = [NSString stringWithFormat:@"%.0f", sender.value];
+    [self changeTipLabelValue];
+    
+}
+
 
 @end
